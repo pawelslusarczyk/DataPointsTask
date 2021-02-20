@@ -1,0 +1,45 @@
+version: '3.7'
+
+volumes:
+  postgres-volume:
+  logs:
+
+services:
+  db:
+    container_name: postgres
+    image: postgres:12.4
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: mysecretpassword
+    networks:
+      - recruitment-task-network
+      
+  recruitment_task_api:
+    container_name: api
+    image: 'recruitment-task-api'
+    depends_on:
+      - db
+    build:
+      context: ./RecruitmentTaskApi
+      dockerfile: ./Dockerfile
+    networks:
+      - recruitment-task-network
+      
+  recruitment_task_calculation:
+    container_name: calculation
+    image: 'recruitment-task-calculation'
+    depends_on:
+      - db
+      - recruitment_task_api
+    build:
+      context: ./RecruitmentTaskCalculation
+      dockerfile: ./Dockerfile
+    networks:
+      - recruitment-task-network
+  
+
+networks:
+  recruitment-task-network:
+    driver: bridge
